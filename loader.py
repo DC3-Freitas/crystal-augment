@@ -7,6 +7,13 @@ import numpy as np
 from pymatgen.core import Lattice, Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
+BRAVAIS_LABELS = {
+    "aP": 0, "mP": 1, "mS": 2,
+    "oP": 3, "oS": 4, "oI": 5, "oF": 6,
+    "tP": 7, "tI": 8,
+    "hP": 9, "hR": 10,
+    "cP": 11, "cI": 12, "cF": 13,
+}
 
 def load_prototype(cif_path: str) -> Structure:
     """

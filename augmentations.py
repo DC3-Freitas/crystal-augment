@@ -5,7 +5,6 @@ import torch
 from torch import Tensor
 from pymatgen.core import Structure, Lattice
 
-
 @dataclass
 class AugmentedStructure:
     positions: Tensor  # (N, 3)
@@ -13,8 +12,8 @@ class AugmentedStructure:
     species: Tensor  # (N,)
     bravais_lattice: str = None
     ordering: str = None
-    sigma: float = None # structural perturbation
-    p: float = None # species shuffle fraction
+    sigma: float = None  # structural perturbation
+    p: float = None  # species shuffle fraction
     family_id: int = None
     augmentation_type: str = None
 
@@ -23,13 +22,17 @@ class AugmentedStructure:
         species_list = self.species.numpy().tolist()
         positions_list = self.positions.numpy().tolist()
         return Structure(lattice, species_list, positions_list)
-    
+
     def to_xyz(self, filename: str):
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             f.write(f"{len(self.species)}\n")
-            f.write(f"Augmentation type: {self.augmentation_type}, sigma: {self.sigma}, p: {self.p}\n")
+            f.write(
+                f"Augmentation type: {self.augmentation_type}, sigma: {self.sigma}, p: {self.p}\n"
+            )
             for i in range(len(self.species)):
-                f.write(f"{self.species[i].item()} {self.positions[i, 0].item()} {self.positions[i, 1].item()} {self.positions[i, 2].item()}\n")
+                f.write(
+                    f"{self.species[i].item()} {self.positions[i, 0].item()} {self.positions[i, 1].item()} {self.positions[i, 2].item()}\n"
+                )
 
 
 def apply_gaussian_noise(

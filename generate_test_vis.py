@@ -8,7 +8,9 @@ supercell = loader.make_supercell(struct, min_box_length=1.0, min_atoms=108)
 supercell = loader.rescale_to_dnn(supercell, target_dnn=2.55)
 
 strained_positions, strained_cell = augmentations.apply_cell_strain(
-    torch.tensor(supercell.cart_coords, dtype=torch.float), torch.tensor(supercell.lattice.matrix, dtype=torch.float), magnitude=0.05
+    torch.tensor(supercell.cart_coords, dtype=torch.float),
+    torch.tensor(supercell.lattice.matrix, dtype=torch.float),
+    magnitude=0.05,
 )
 
 aug = augmentations.AugmentedStructure(
@@ -21,7 +23,9 @@ aug = augmentations.AugmentedStructure(
     p=1.0,
 )
 print(aug.family_id, aug.augmentation_type, aug.sigma, aug.p)
-aug.to_xyz(f"test_vis/test_aug_family_{aug.family_id}_{aug.augmentation_type}_sigma{aug.sigma}_p{aug.p}.xyz")
+aug.to_xyz(
+    f"test_vis/test_aug_family_{aug.family_id}_{aug.augmentation_type}_sigma{aug.sigma}_p{aug.p}.xyz"
+)
 
 # family = augmentations.sample_augmentation_family(
 #     parent=supercell,
