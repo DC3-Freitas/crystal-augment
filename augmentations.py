@@ -5,6 +5,7 @@ import torch
 from torch import Tensor
 from pymatgen.core import Structure, Lattice
 
+
 @dataclass
 class AugmentedStructure:
     positions: Tensor  # (N, 3)
