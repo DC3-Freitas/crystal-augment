@@ -127,7 +127,10 @@ class PrototypeDataset(Dataset):
             raw_ordering = info.get("ordering_type")
             if raw_ordering is None:
                 raw_ordering = info.get("ordering")
-            if isinstance(raw_ordering, str) and raw_ordering not in self.ordering_label_map:
+            if (
+                isinstance(raw_ordering, str)
+                and raw_ordering not in self.ordering_label_map
+            ):
                 self.ordering_label_map[raw_ordering] = next_ordering_label
                 next_ordering_label += 1
 
@@ -251,7 +254,9 @@ class FamilySampler(BatchSampler):
     def __len__(self):
         if self.drop_last:
             return self.num_families // self.families_per_batch
-        return (self.num_families + self.families_per_batch - 1) // self.families_per_batch
+        return (
+            self.num_families + self.families_per_batch - 1
+        ) // self.families_per_batch
 
 
 def build_family_dataloader(
@@ -273,4 +278,3 @@ def build_family_dataloader(
         num_workers=num_workers,
         pin_memory=pin_memory,
     )
-    

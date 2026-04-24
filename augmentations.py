@@ -1,4 +1,5 @@
 from typing import Tuple, List
+import random
 from dataclasses import dataclass
 
 import torch
@@ -138,6 +139,7 @@ def sample_augmentation_family(
     batch_size: int | None,
     sigmas: List[float],
     ps: List[float],
+    num_cross: int = 2,
 ) -> List[AugmentedStructure]:
     """
     If batch_size is None, the output will sweep each sigma and species permutation
@@ -150,26 +152,27 @@ def sample_augmentation_family(
     """
     if batch_size is None:
         augmentations = []
-        for sigma in sigmas:
-            for p in ps:
-                new_positions, new_species = apply_cross_augmentation(
-                    torch.tensor(parent.cart_coords, dtype=torch.float),
-                    torch.tensor(parent.lattice.matrix, dtype=torch.float),
-                    torch.tensor(parent.atomic_numbers, dtype=torch.long),
-                    sigma,
-                    p,
+        for _ in num_cross:
+            sigma = random.choice(sigmas)
+            p = random.choice(ps)
+            new_positions, new_species = apply_cross_augmentation(
+                torch.tensor(parent.cart_coords, dtype=torch.float),
+                torch.tensor(parent.lattice.matrix, dtype=torch.float),
+                torch.tensor(parent.atomic_numbers, dtype=torch.long),
+                sigma,
+                p,
+            )
+            augmentations.append(
+                AugmentedStructure(
+                    positions=new_positions,
+                    cell=torch.tensor(parent.lattice.matrix, dtype=torch.float),
+                    species=new_species,
+                    sigma=sigma,
+                    p=p,
+                    family_id=family_id,
+                    augmentation_type="cross",
                 )
-                augmentations.append(
-                    AugmentedStructure(
-                        positions=new_positions,
-                        cell=torch.tensor(parent.lattice.matrix, dtype=torch.float),
-                        species=new_species,
-                        sigma=sigma,
-                        p=p,
-                        family_id=family_id,
-                        augmentation_type="cross",
-                    )
-                )
+            )
         # Add pure structural augmentations (sigma > 0, p = 0)
         for sigma in sigmas:
             new_positions = apply_gaussian_noise(
