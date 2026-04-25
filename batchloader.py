@@ -243,7 +243,26 @@ class PrototypeDataset(Dataset):
                 )
             )
         else:
-            pass  # TODO cross augmentations
+            sigma = torch.random.choice(torch.tensor(self.sigma_levels))
+            p = torch.random.choice(torch.tensor(self.shuffle_levels))
+            new_positions, new_species = augmentations.apply_cross_augmentation(
+                torch.tensor(parent_atoms.cart_coords, dtype=torch.float),
+                torch.tensor(parent_atoms.lattice.matrix, dtype=torch.float),
+                torch.tensor(parent_atoms.atomic_numbers, dtype=torch.long),
+                sigma=sigma,
+                p=p,
+            )
+            return make_atomic_data(
+                AugmentedStructure(
+                    positions=new_positions,
+                    cell=torch.tensor(
+                        parent_atoms.lattice.matrix, dtype=torch.float
+                    ),
+                    species=new_species,
+                    sigma=sigma,
+                    p=p,
+                )
+            )
 
 
 class FamilySampler(BatchSampler):
