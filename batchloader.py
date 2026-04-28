@@ -17,6 +17,7 @@ from augmentations import AugmentedStructure
 
 Z_TABLE = AtomicNumberTable([1, 2])
 
+
 def make_atomic_data(
     augmented: AugmentedStructure,
     metadata: Dict[str, float | int],
@@ -30,17 +31,20 @@ def make_atomic_data(
         positions=augmented.positions.to(torch.float32).cpu().numpy(),
         cell=augmented.cell.to(torch.float32).cpu().numpy(),
         pbc=[True, True, True],
-        properties={}, # we may want to rework this so our metadata is stored here
+        properties={},  # we may want to rework this so our metadata is stored here
         property_weights={},
     )
     data = AtomicData.from_config(config, z_table=z_table, cutoff=cutoff)
 
     data.bravais_label = torch.tensor(
-        loader.BRAVAIS_LABELS[metadata["bravais_label"]], dtype=torch.long)
+        loader.BRAVAIS_LABELS[metadata["bravais_label"]], dtype=torch.long
+    )
     # data.ordering_type_label = torch.tensor(
     #     metadata["ordering_type_label"], dtype=torch.long
     # )
-    data.ordering_type_label = metadata["ordering_type_label"] # should ask what we do this for
+    data.ordering_type_label = metadata[
+        "ordering_type_label"
+    ]  # should ask what we do this for
     data.sigma = torch.tensor(metadata["sigma"], dtype=torch.float32)
     data.shuffle_fraction = torch.tensor(
         metadata["shuffle_fraction"], dtype=torch.float32
@@ -48,18 +52,19 @@ def make_atomic_data(
     data.family_id = torch.tensor(metadata["family_id"], dtype=torch.long)
     return data
 
+
 class PrototypeDataset(Dataset):
     def __init__(
-            self,
-            cif_dir,
-            manifest,
-            sigma_levels,
-            shuffle_levels,
-            d_nn_range,
-            n_scales=5,
-            r_cut=5.0,
-            min_box_length=10.0
-        ):
+        self,
+        cif_dir,
+        manifest,
+        sigma_levels,
+        shuffle_levels,
+        d_nn_range,
+        n_scales=5,
+        r_cut=5.0,
+        min_box_length=10.0,
+    ):
         """
         Dataset of prototype structures with on-the-fly augmentations.
 
@@ -166,7 +171,7 @@ class PrototypeDataset(Dataset):
         """
 
         seed = self.batch + self.epoch * 1000
-        torch.manual_seed(seed) # within each batch, augmentations should be identical
+        torch.manual_seed(seed)  # within each batch, augmentations should be identical
 
         family = idx // self.n_augmentations
         aug_idx = idx % self.n_augmentations
@@ -175,15 +180,9 @@ class PrototypeDataset(Dataset):
         if aug_idx == 0:
             return make_atomic_data(
                 AugmentedStructure(
-                    positions=torch.tensor(
-                        parent_atoms.cart_coords, dtype=torch.float
-                    ),
-                    cell=torch.tensor(
-                        parent_atoms.lattice.matrix, dtype=torch.float
-                    ),
-                    species=torch.tensor(
-                        parent_atoms.atomic_numbers, dtype=torch.long
-                    ),
+                    positions=torch.tensor(parent_atoms.cart_coords, dtype=torch.float),
+                    cell=torch.tensor(parent_atoms.lattice.matrix, dtype=torch.float),
+                    species=torch.tensor(parent_atoms.atomic_numbers, dtype=torch.long),
                 ),
                 metadata={
                     "bravais_label": parent_info["info"]["bravais_label"],
@@ -201,12 +200,8 @@ class PrototypeDataset(Dataset):
             )
             return make_atomic_data(
                 AugmentedStructure(
-                    positions=torch.tensor(
-                        parent_atoms.cart_coords, dtype=torch.float
-                    ),
-                    cell=torch.tensor(
-                        parent_atoms.lattice.matrix, dtype=torch.float
-                    ),
+                    positions=torch.tensor(parent_atoms.cart_coords, dtype=torch.float),
+                    cell=torch.tensor(parent_atoms.lattice.matrix, dtype=torch.float),
                     species=new_species,
                 ),
                 metadata={
@@ -225,19 +220,15 @@ class PrototypeDataset(Dataset):
             )
             return make_atomic_data(
                 AugmentedStructure(
-                    positions=torch.tensor(
-                        parent_atoms.cart_coords, dtype=torch.float
-                    ),
-                    cell=torch.tensor(
-                        parent_atoms.lattice.matrix, dtype=torch.float
-                    ),
+                    positions=torch.tensor(parent_atoms.cart_coords, dtype=torch.float),
+                    cell=torch.tensor(parent_atoms.lattice.matrix, dtype=torch.float),
                     species=new_species,
                 ),
                 metadata={
                     "bravais_label": parent_info["info"]["bravais_label"],
                     "ordering_type_label": parent_info["info"]["ordering_type_label"],
                     "sigma": 0.0,
-                    "shuffle_fraction": -1.0, # should monospecies be considered fully disordered?
+                    "shuffle_fraction": -1.0,  # should monospecies be considered fully disordered?
                     "family_id": parent_info["family_id"],
                 },
                 z_table=Z_TABLE,
@@ -249,17 +240,13 @@ class PrototypeDataset(Dataset):
                 torch.tensor(parent_atoms.cart_coords, dtype=torch.float),
                 torch.tensor(parent_atoms.lattice.matrix, dtype=torch.float),
                 sigma=sigma,
-                seed=seed
+                seed=seed,
             )
             return make_atomic_data(
                 AugmentedStructure(
                     positions=new_positions,
-                    cell=torch.tensor(
-                        parent_atoms.lattice.matrix, dtype=torch.float
-                    ),
-                    species=torch.tensor(
-                        parent_atoms.atomic_numbers, dtype=torch.long
-                    ),
+                    cell=torch.tensor(parent_atoms.lattice.matrix, dtype=torch.float),
+                    species=torch.tensor(parent_atoms.atomic_numbers, dtype=torch.long),
                     sigma=sigma,
                 ),
                 metadata={
@@ -275,17 +262,14 @@ class PrototypeDataset(Dataset):
         elif 8 <= aug_idx < 13:
             p = self.shuffle_levels[aug_idx - 8]
             new_species = augmentations.apply_species_shuffle(
-                torch.tensor(parent_atoms.atomic_numbers, dtype=torch.long), fraction=p,
-                seed=seed
+                torch.tensor(parent_atoms.atomic_numbers, dtype=torch.long),
+                fraction=p,
+                seed=seed,
             )
             return make_atomic_data(
                 AugmentedStructure(
-                    positions=torch.tensor(
-                        parent_atoms.cart_coords, dtype=torch.float
-                    ),
-                    cell=torch.tensor(
-                        parent_atoms.lattice.matrix, dtype=torch.float
-                    ),
+                    positions=torch.tensor(parent_atoms.cart_coords, dtype=torch.float),
+                    cell=torch.tensor(parent_atoms.lattice.matrix, dtype=torch.float),
                     species=new_species,
                     p=p,
                 ),
@@ -300,22 +284,24 @@ class PrototypeDataset(Dataset):
                 cutoff=self.r_cut,
             )
         else:
-            sigma = torch.tensor(self.sigma_levels[torch.randint(len(self.sigma_levels), (1,))])
-            p = torch.tensor(self.shuffle_levels[torch.randint(len(self.shuffle_levels), (1,))])
+            sigma = torch.tensor(
+                self.sigma_levels[torch.randint(len(self.sigma_levels), (1,))]
+            )
+            p = torch.tensor(
+                self.shuffle_levels[torch.randint(len(self.shuffle_levels), (1,))]
+            )
             new_positions, new_species = augmentations.apply_cross_augmentation(
                 torch.tensor(parent_atoms.cart_coords, dtype=torch.float),
                 torch.tensor(parent_atoms.lattice.matrix, dtype=torch.float),
                 torch.tensor(parent_atoms.atomic_numbers, dtype=torch.long),
                 sigma=sigma,
                 shuffle_fraction=p,
-                seed=seed
+                seed=seed,
             )
             return make_atomic_data(
                 AugmentedStructure(
                     positions=new_positions,
-                    cell=torch.tensor(
-                        parent_atoms.lattice.matrix, dtype=torch.float
-                    ),
+                    cell=torch.tensor(parent_atoms.lattice.matrix, dtype=torch.float),
                     species=new_species,
                     sigma=sigma,
                     p=p,
@@ -359,13 +345,18 @@ class FamilySampler(BatchSampler):
             batch_families = indices[i : i + self.families_per_batch]
             batch_indices = []
             for family in batch_families:
-                family_indices = list(range(family * self.family_size, (family + 1) * self.family_size))
-                family_indices = torch.tensor(family_indices)[torch.randperm(self.family_size)].tolist()
+                family_indices = list(
+                    range(family * self.family_size, (family + 1) * self.family_size)
+                )
+                family_indices = torch.tensor(family_indices)[
+                    torch.randperm(self.family_size)
+                ].tolist()
                 batch_indices.extend(family_indices)
             yield batch_indices
 
     def __len__(self):
         return len(self.dataset) // self.batch_size
 
+
 def atomic_data_collate_fn(batch):
-    return batch # the model will need to take in list of AtomicData
+    return batch  # the model will need to take in list of AtomicData

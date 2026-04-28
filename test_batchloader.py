@@ -3,11 +3,12 @@ from torch.utils.data import DataLoader
 
 import batchloader
 
+
 def test_batchloader():
     ds = batchloader.PrototypeDataset(
         cif_dir="tests",
         manifest={
-            571 : {
+            571: {
                 "cif_file": "mp-571_TiNi.cif",
                 "bravais_label": "aP",
                 "ordering_type_label": "oP",
@@ -23,9 +24,7 @@ def test_batchloader():
     print(f"Dataset initialized with {len(ds)} samples")
     dl = DataLoader(
         ds,
-        batch_sampler=batchloader.FamilySampler(
-            ds, batch_size=64, family_size=16
-        ),
+        batch_sampler=batchloader.FamilySampler(ds, batch_size=64, family_size=16),
         collate_fn=batchloader.atomic_data_collate_fn,
     )
     for epoch in range(2):
@@ -44,11 +43,13 @@ def test_batchloader():
                         assert torch.equal(
                             data_1.positions, data_2.positions
                         ), "Positions should be the same for samples with the same sigma"
-                    
+
                     if data_1.shuffle_fraction == data_2.shuffle_fraction:
-                        assert torch.equal(
-                            data_1.node_attrs, data_2.node_attrs
-                        ), "Species should be the same for samples with the same shuffle_fraction.\n" \
-                        f"data_1.shuffle_fraction={data_1.shuffle_fraction}, data_2.shuffle_fraction={data_2.shuffle_fraction}\n" \
-                        f"data_1.node_attrs={"".join(str(i[0]) for i in data_1.node_attrs)}, data_2.node_attrs={"".join(str(i[0]) for i in data_2.node_attrs)}"
+                        assert torch.equal(data_1.node_attrs, data_2.node_attrs), (
+                            "Species should be the same for samples with the same shuffle_fraction.\n"
+                            f"data_1.shuffle_fraction={data_1.shuffle_fraction}, data_2.shuffle_fraction={data_2.shuffle_fraction}\n"
+                            f"data_1.node_attrs={"".join(str(i[0]) for i in data_1.node_attrs)}, data_2.node_attrs={"".join(str(i[0]) for i in data_2.node_attrs)}"
+                        )
+
+
 test_batchloader()

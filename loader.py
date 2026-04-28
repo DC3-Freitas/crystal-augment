@@ -53,7 +53,9 @@ def load_prototype(cif_path: str) -> Structure:
             coords=struct.cart_coords,
             coords_are_cartesian=True,
         )
-        print(f"Mapped species {unique_species[0]}->{species_map[unique_species[0]]}, {unique_species[1]}->{species_map[unique_species[1]]}")
+        print(
+            f"Mapped species {unique_species[0]}->{species_map[unique_species[0]]}, {unique_species[1]}->{species_map[unique_species[1]]}"
+        )
     else:
         raise ValueError(
             f"Only unary/binary prototypes are supported, found {len(unique_species)} species: {unique_species}"
