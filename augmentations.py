@@ -117,8 +117,8 @@ def apply_species_permutation(
 def apply_mono_species(
     species: Tensor,  # (N,)
 ) -> Tensor:
-    # Set all species to the same label (0)
-    return torch.zeros_like(species)
+    # Set all species to the same label (1)
+    return torch.ones_like(species, dtype=torch.long)
 
 
 def apply_cross_augmentation(

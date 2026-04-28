@@ -33,6 +33,31 @@ def load_prototype(cif_path: str) -> Structure:
     struct = Structure.from_file(cif_path)
     sga = SpacegroupAnalyzer(struct)
     struct = sga.get_conventional_standard_structure()
+    # normalize species to Z=1,2 for binary prototypes (and Z=1 for unary)
+    unique_species = struct.composition.elements
+    if len(unique_species) == 1:
+        struct = Structure(
+            lattice=struct.lattice,
+            species=[1] * len(struct),
+            coords=struct.cart_coords,
+            coords_are_cartesian=True,
+        )
+    elif len(unique_species) == 2:
+        species_map = {
+            unique_species[0]: 1,
+            unique_species[1]: 2,
+        }
+        struct = Structure(
+            lattice=struct.lattice,
+            species=[species_map[sp] for sp in struct.species],
+            coords=struct.cart_coords,
+            coords_are_cartesian=True,
+        )
+        print(f"Mapped species {unique_species[0]}->{species_map[unique_species[0]]}, {unique_species[1]}->{species_map[unique_species[1]]}")
+    else:
+        raise ValueError(
+            f"Only unary/binary prototypes are supported, found {len(unique_species)} species: {unique_species}"
+        )
     return struct
 
 
