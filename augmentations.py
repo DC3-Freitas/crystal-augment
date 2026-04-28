@@ -41,11 +41,14 @@ def apply_gaussian_noise(
     positions: Tensor,  # (N, 3)
     cell: Tensor,  # (3, 3)
     sigma: float = 0.01,  # noise standard deviation in Angstrom
+    seed: int = None,
 ) -> Tensor:
     """
     Apply Gaussian noise to atomic positions, ensuring that the resulting
     positions remain within the unit cell defined by 'cell'.
     """
+    if seed is not None:
+        torch.manual_seed(seed)
     dnn = torch.min(
         torch.norm(positions[:, None, :] - positions[None, :, :], dim=-1)
         + torch.eye(len(positions)) * 1e6
@@ -86,7 +89,10 @@ def apply_cell_strain(
 def apply_species_shuffle(
     species: Tensor,  # (N,)
     fraction: float,  # fraction of cross-species swaps to perform
+    seed: int = None,
 ) -> Tensor:
+    if seed is not None:
+        torch.manual_seed(seed)
     permuted_species = species.clone()
     unique_species = torch.unique(species)
     for i in range(len(unique_species)):
@@ -127,9 +133,10 @@ def apply_cross_augmentation(
     species: Tensor,  # (N,)
     sigma: float,
     shuffle_fraction: float,
+    seed: int = None,
 ) -> Tuple[Tensor, Tensor]:
-    new_positions = apply_gaussian_noise(positions, cell, sigma)
-    new_species = apply_species_shuffle(species, shuffle_fraction)
+    new_positions = apply_gaussian_noise(positions, cell, sigma, seed)
+    new_species = apply_species_shuffle(species, shuffle_fraction, seed)
     return new_positions, new_species
 
 

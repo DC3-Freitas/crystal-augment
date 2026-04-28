@@ -165,7 +165,8 @@ class PrototypeDataset(Dataset):
         ]
         """
 
-        torch.manual_seed(self.batch + self.epoch * 1000) # within each batch, augmentations should be identical
+        seed = self.batch + self.epoch * 1000
+        torch.manual_seed(seed) # within each batch, augmentations should be identical
 
         family = idx // self.n_augmentations
         aug_idx = idx % self.n_augmentations
@@ -196,7 +197,7 @@ class PrototypeDataset(Dataset):
             )
         elif aug_idx == 1:
             new_species = augmentations.apply_species_permutation(
-                torch.tensor(parent_atoms.atomic_numbers, dtype=torch.long)
+                torch.tensor(parent_atoms.atomic_numbers, dtype=torch.long),
             )
             return make_atomic_data(
                 AugmentedStructure(
@@ -220,7 +221,7 @@ class PrototypeDataset(Dataset):
             )
         elif aug_idx == 2:
             new_species = augmentations.apply_mono_species(
-                torch.tensor(parent_atoms.atomic_numbers, dtype=torch.long)
+                torch.tensor(parent_atoms.atomic_numbers, dtype=torch.long),
             )
             return make_atomic_data(
                 AugmentedStructure(
@@ -236,7 +237,7 @@ class PrototypeDataset(Dataset):
                     "bravais_label": parent_info["info"]["bravais_label"],
                     "ordering_type_label": parent_info["info"]["ordering_type_label"],
                     "sigma": 0.0,
-                    "shuffle_fraction": 1.0, # should monospecies be considered fully disordered?
+                    "shuffle_fraction": -1.0, # should monospecies be considered fully disordered?
                     "family_id": parent_info["family_id"],
                 },
                 z_table=Z_TABLE,
@@ -248,6 +249,7 @@ class PrototypeDataset(Dataset):
                 torch.tensor(parent_atoms.cart_coords, dtype=torch.float),
                 torch.tensor(parent_atoms.lattice.matrix, dtype=torch.float),
                 sigma=sigma,
+                seed=seed
             )
             return make_atomic_data(
                 AugmentedStructure(
@@ -273,7 +275,8 @@ class PrototypeDataset(Dataset):
         elif 8 <= aug_idx < 13:
             p = self.shuffle_levels[aug_idx - 8]
             new_species = augmentations.apply_species_shuffle(
-                torch.tensor(parent_atoms.atomic_numbers, dtype=torch.long), fraction=p
+                torch.tensor(parent_atoms.atomic_numbers, dtype=torch.long), fraction=p,
+                seed=seed
             )
             return make_atomic_data(
                 AugmentedStructure(
@@ -305,6 +308,7 @@ class PrototypeDataset(Dataset):
                 torch.tensor(parent_atoms.atomic_numbers, dtype=torch.long),
                 sigma=sigma,
                 shuffle_fraction=p,
+                seed=seed
             )
             return make_atomic_data(
                 AugmentedStructure(

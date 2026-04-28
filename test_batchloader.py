@@ -38,6 +38,17 @@ def test_batchloader():
                 print(
                     f"  Sample with bravais_label={data.bravais_label}, ordering_type_label={data.ordering_type_label}, sigma={data.sigma}, shuffle_fraction={data.shuffle_fraction}"
                 )
-
-
+            for data_1 in batch:
+                for data_2 in batch:
+                    if data_1.sigma == data_2.sigma:
+                        assert torch.equal(
+                            data_1.positions, data_2.positions
+                        ), "Positions should be the same for samples with the same sigma"
+                    
+                    if data_1.shuffle_fraction == data_2.shuffle_fraction:
+                        assert torch.equal(
+                            data_1.node_attrs, data_2.node_attrs
+                        ), "Species should be the same for samples with the same shuffle_fraction.\n" \
+                        f"data_1.shuffle_fraction={data_1.shuffle_fraction}, data_2.shuffle_fraction={data_2.shuffle_fraction}\n" \
+                        f"data_1.node_attrs={"".join(str(i[0]) for i in data_1.node_attrs)}, data_2.node_attrs={"".join(str(i[0]) for i in data_2.node_attrs)}"
 test_batchloader()
