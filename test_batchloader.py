@@ -12,6 +12,11 @@ def test_batchloader():
                 "cif_file": "mp-571_TiNi.cif",
                 "bravais_label": "aP",
                 "ordering_type_label": "oP",
+            },
+            13: {
+                "cif_file": "mp-13_Fe.cif",
+                "bravais_label": "cP",
+                "ordering_type_label": "cP",
             }
         },
         sigma_levels=[0.1, 0.2, 0.3, 0.4, 0.5],
@@ -39,6 +44,8 @@ def test_batchloader():
                 )
             for data_1 in batch:
                 for data_2 in batch:
+                    if data_1.family_id != data_2.family_id:
+                        continue
                     if data_1.sigma == data_2.sigma:
                         assert torch.equal(
                             data_1.positions, data_2.positions
@@ -52,4 +59,5 @@ def test_batchloader():
                         )
 
 
-test_batchloader()
+if __name__ == "__main__":
+    test_batchloader()

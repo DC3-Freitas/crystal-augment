@@ -114,6 +114,10 @@ def apply_species_permutation(
     species: Tensor,  # (N,)
 ) -> Tensor:
     species_set = torch.unique(species)
+    if len(species_set) == 1:
+        return species.clone()
+    if len(species_set) > 2:
+        raise ValueError("apply_species_permutation is only defined for binary systems")
     permuted_species = species.clone()
     permuted_species[species == species_set[0]] = species_set[1]
     permuted_species[species == species_set[1]] = species_set[0]
